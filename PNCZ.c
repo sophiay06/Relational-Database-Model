@@ -191,7 +191,7 @@ void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
         printf("\nHash table after deletions:\n");
         print_PNCZTable(table);
     } else {
-        printf("\nNo matching entries found to delete.\n");
+        printf("No matching entries found to delete.\n");
     }
 }
 

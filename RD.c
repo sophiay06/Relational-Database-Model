@@ -1,64 +1,63 @@
-#include "RPT.h"
+#include "RD.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-// Define the RPT struct
-struct RPT {
+// Define the RD struct
+struct RD {
     char race[50];
-    int pid;
-    char time[10];
-    struct RPT* next;  // For chaining in hash buckets
+    char date[15];
+    struct RD* next;  // For chaining in hash buckets
 };
 
-struct RPTHashTable {
+struct RDHashTable {
     int size;
-    RPT* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
+    RD* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
     int count;
 };
 
-static int hash(int pid, int size) {
-    return abs(pid) % size;
+static int hash_race(const char* race, int table_size) {
+    unsigned int hash_value = 0;
+    for (int i = 0; race[i] != '\0'; i++) {
+        hash_value += (unsigned int)race[i];
+    }
+    return hash_value % table_size;
 }
 
-// Create a new RPT entry
-RPT create_RPT(const char* race, int pid, const char* time) {
-    RPT newEntry = (RPT)malloc(sizeof(struct RPT));
+// Create a new RD entry
+RD create_RD(const char* race, const char* date) {
+    RD newEntry = (RD)malloc(sizeof(struct RD));
     if (newEntry != NULL) {
         strncpy(newEntry->race, race, sizeof(newEntry->race) - 1);
         newEntry->race[sizeof(newEntry->race) - 1] = '\0';
-        newEntry->pid = pid;
-        strncpy(newEntry->time, time, sizeof(newEntry->time) - 1);
-        newEntry->time[sizeof(newEntry->time) - 1] = '\0';
+        strncpy(newEntry->date, date, sizeof(newEntry->date) - 1);
+        newEntry->date[sizeof(newEntry->date) - 1] = '\0';
         newEntry->next = NULL;
     }
     return newEntry;
 }
 
-RPTHashTable new_RPTHashTable(int size) {
-    RPTHashTable table = (RPTHashTable)malloc(sizeof(struct RPTHashTable));
+RDHashTable new_RDHashTable(int size) {
+    RDHashTable table = (RDHashTable)malloc(sizeof(struct RDHashTable));
     table->size = size;
-    table->buckets = (RPT*)calloc(size, sizeof(RPT));
+    table->buckets = (RD*)calloc(size, sizeof(RD));
     table->count = 0;
     return table;
 }
 
-const char* get_RPT_race(RPT entry) {
+const char* get_RD_race(RD entry) {
     return entry->race;
 }
 
-int get_RPT_pid(RPT entry) {
-    return entry->pid;
-}
-const char* get_RPT_time(RPT entry) {
-    return entry->time;
+const char* get_RD_date(RD entry) {
+    return entry->date;
 }
 
-void free_RPTHashTable(RPTHashTable table) {
+void free_RDHashTable(RDHashTable table) {
     for (int i = 0; i < table->size; i++) {
-        RPT current = table->buckets[i];
+        RD current = table->buckets[i];
         while (current != NULL) {
-            RPT next = current->next;
+            RD next = current->next;
             free(current);  // Free each PNCZ node
             current = next;
         }
@@ -67,19 +66,19 @@ void free_RPTHashTable(RPTHashTable table) {
     free(table);            // Free the table structure itself
 }
 
-void insert_RPT(RPTHashTable table, RPT entry) {
-    int index = hash(entry->pid, table->size);
+void insert_RD(RDHashTable table, RD entry) {
+    int index = hash_race(entry->race, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
 }
 
-void lookup_RPT(RPTHashTable table, const char* race, int pid, const char* time) {
+void lookup_RD(RDHashTable table, const char* race, const char* date) {
     int found = 0;  // Flag to check if any entry is found
 
     // Loop through each bucket in the hash table
     for (int i = 0; i < table->size; i++) {
-        RPT current = table->buckets[i];
+        RD current = table->buckets[i];
 
         // Traverse each entry in the current bucket
         while (current != NULL) {
@@ -87,18 +86,14 @@ void lookup_RPT(RPTHashTable table, const char* race, int pid, const char* time)
                 current = current->next;
                 continue;
             }
-            if (pid != -1 && current->pid != pid) {
-                current = current->next;
-                continue;
-            }
-            if (time != NULL && strcmp(time, "*") != 0 && strcmp(current->time, time) != 0) {
+            if (date != NULL && strcmp(date, "*") != 0 && strcmp(current->date, date) != 0) {
                 current = current->next;
                 continue;
             }
 
             // If all specified conditions match, print the entry
-            printf("Race = %s, PID = %d, Time = %s\n",
-                   current->race, current->pid, current->time);
+            printf("Race = %s, Date = %s\n",
+                   current->race, current->date);
             found = 1;
 
             // Move to the next entry in the bucket
@@ -111,21 +106,21 @@ void lookup_RPT(RPTHashTable table, const char* race, int pid, const char* time)
     }
 }
 
-void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time) {
+void delete_RD(RDHashTable table, const char* race, const char* date) {
     int start_bucket = 0;
     int end_bucket = table->size;
     int deleted = 0;  // Counter to track if any entries were deleted
 
     // If pid is not a wildcard, calculate the specific bucket
-    if (pid != -1) {
-        start_bucket = hash(pid, table->size);
+    if (race != NULL) {
+        start_bucket = hash_race(race, table->size);
         end_bucket = start_bucket + 1;
     }
 
     // Traverse the relevant buckets
     for (int i = start_bucket; i < end_bucket; i++) {
-        RPT current = table->buckets[i];
-        RPT prev = NULL;
+        RD current = table->buckets[i];
+        RD prev = NULL;
 
         // Traverse the linked list at the current bucket
         while (current != NULL) {
@@ -133,8 +128,7 @@ void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time)
             int match = 1;
 
             if (race != NULL && strcmp(race, "*") != 0 && strcmp(current->race, race) != 0) match = 0;
-            if (pid != -1 && current->pid != pid) match = 0;
-            if (time != NULL && strcmp(time, "*") != 0 && strcmp(current->time, time) != 0) match = 0;
+            if (date != NULL && strcmp(date, "*") != 0 && strcmp(current->date, date) != 0) match = 0;
 
             if (match) {
                 // Entry matches; delete it
@@ -147,7 +141,7 @@ void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time)
                 }
 
                 // Move to the next node and free the current node
-                RPT to_delete = current;
+                RD to_delete = current;
                 current = current->next;
                 free(to_delete);
                 table->count--;
@@ -163,19 +157,19 @@ void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time)
     // Print the updated hash table if any entries were deleted
     if (deleted) {
         printf("\nHash table after deletions:\n");
-        print_RPTTable(table);
+        print_RDTable(table);
     } else {
         printf("No matching entries found to delete.\n");
     }
 }
 
-void print_RPTTable(RPTHashTable table) {
+void print_RDTable(RDHashTable table) {
     for (int i = 0; i < table->size; i++) {
         printf("Bucket %d: ", i);
-        RPT current = table->buckets[i];
+        RD current = table->buckets[i];
         while (current != NULL) {
-            printf("[Race: %s, PID: %d, Time: %s] -> ",
-                   current->race, current->pid, current->time);
+            printf("[Race: %s, Date: %s] -> ",
+                   current->race, current->date);
             current = current->next;
         }
         printf("NULL\n");
