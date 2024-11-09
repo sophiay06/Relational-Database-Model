@@ -1,77 +1,64 @@
-#include "PNCZ.h"
+#include "RPT.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-// Define the PNCZ struct
-struct PNCZ {
+// Define the RPT struct
+struct RPT {
+    char race[50];
     int pid;
-    char name[50];
-    char city[50];
-    int zip;
-    struct PNCZ* next;  // For chaining in hash buckets
+    char time[10];
+    struct RPT* next;  // For chaining in hash buckets
 };
 
-// Define the PNCZHashTable struct privately in PNCZ.c
-struct PNCZHashTable {
+struct RPTHashTable {
     int size;
-    PNCZ* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
+    RPT* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
     int count;
 };
 
-// Hash function to compute the bucket index
 static int hash(int pid, int size) {
     return abs(pid) % size;
 }
 
-// Create a new PNCZ entry
-PNCZ create_PNCZ(int pid, const char* name, const char* city, int zip) {
-    PNCZ newEntry = (PNCZ)malloc(sizeof(struct PNCZ));
+// Create a new RPT entry
+RPT create_RPT(const char* race, int pid, const char* time) {
+    RPT newEntry = (RPT)malloc(sizeof(struct RPT));
     if (newEntry != NULL) {
+        strncpy(newEntry->race, race, sizeof(newEntry->race) - 1);
+        newEntry->race[sizeof(newEntry->race) - 1] = '\0';
         newEntry->pid = pid;
-        strncpy(newEntry->name, name, sizeof(newEntry->name) - 1);
-        newEntry->name[sizeof(newEntry->name) - 1] = '\0';
-        strncpy(newEntry->city, city, sizeof(newEntry->city) - 1);
-        newEntry->city[sizeof(newEntry->city) - 1] = '\0';
-        newEntry->zip = zip;
+        strncpy(newEntry->time, time, sizeof(newEntry->time) - 1);
+        newEntry->time[sizeof(newEntry->time) - 1] = '\0';
         newEntry->next = NULL;
     }
     return newEntry;
 }
 
-
-// Create a new PNCZHashTable
-PNCZHashTable new_PNCZHashTable(int size) {
-    PNCZHashTable table = (PNCZHashTable)malloc(sizeof(struct PNCZHashTable));
+RPTHashTable new_RPTHashTable(int size) {
+    RPTHashTable table = (RPTHashTable)malloc(sizeof(struct RPTHashTable));
     table->size = size;
-    table->buckets = (PNCZ*)calloc(size, sizeof(PNCZ));
+    table->buckets = (RPT*)calloc(size, sizeof(RPT));
     table->count = 0;
     return table;
 }
 
-// Accessor functions
-int get_PNCZ_pid(PNCZ entry) {
-    return entry->pid;
-}
-const char* get_PNCZ_name(PNCZ entry) {
-    return entry->name;
-}
-const char* get_PNCZ_city(PNCZ entry) {
-    return entry->city;
-}
-int get_PNCZ_zip(PNCZ entry) {
-    return entry->zip;
-}
-PNCZ get_PNCZ_next(PNCZ entry) {
-    return entry->next;
+const char* get_RPT_race(RPT entry) {
+    return entry->race;
 }
 
-// Free the PNCZHashTable and all its entries
-void free_PNCZHashTable(PNCZHashTable table) {
+int get_RPT_pid(RPT entry) {
+    return entry->pid;
+}
+const char* get_RPT_time(RPT entry) {
+    return entry->time;
+}
+
+void free_RPTHashTable(RPTHashTable table) {
     for (int i = 0; i < table->size; i++) {
-        PNCZ current = table->buckets[i];
+        RPT current = table->buckets[i];
         while (current != NULL) {
-            PNCZ next = current->next;
+            RPT next = current->next;
             free(current);  // Free each PNCZ node
             current = next;
         }
@@ -80,48 +67,38 @@ void free_PNCZHashTable(PNCZHashTable table) {
     free(table);            // Free the table structure itself
 }
 
-
-// Insert a new PNCZ entry into the hashtable
-void insert_PNCZ(PNCZHashTable table, PNCZ entry) {
+void insert_RPT(RPTHashTable table, RPT entry) {
     int index = hash(entry->pid, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
 }
 
-void lookup_PNCZ(PNCZHashTable table, int pid, const char* name, const char* city, int zip) {
+void lookup_RPT(RPTHashTable table, const char* race, int pid, const char* time) {
     int found = 0;  // Flag to check if any entry is found
 
     // Loop through each bucket in the hash table
     for (int i = 0; i < table->size; i++) {
-        PNCZ current = table->buckets[i];
+        RPT current = table->buckets[i];
 
         // Traverse each entry in the current bucket
         while (current != NULL) {
-            // Match on pid if specified (not -1)
+            if (race != NULL && strcmp(race, "*") != 0 && strcmp(current->race, race) != 0) {
+                current = current->next;
+                continue;
+            }
             if (pid != -1 && current->pid != pid) {
                 current = current->next;
                 continue;
             }
-            // Match on name if specified (not "*")
-            if (name != NULL && strcmp(name, "*") != 0 && strcmp(current->name, name) != 0) {
-                current = current->next;
-                continue;
-            }
-            // Match on city if specified (not "*")
-            if (city != NULL && strcmp(city, "*") != 0 && strcmp(current->city, city) != 0) {
-                current = current->next;
-                continue;
-            }
-            // Match on zip if specified (not -1)
-            if (zip != -1 && current->zip != zip) {
+            if (time != NULL && strcmp(time, "*") != 0 && strcmp(current->time, time) != 0) {
                 current = current->next;
                 continue;
             }
 
             // If all specified conditions match, print the entry
-            printf("PID = %d, Name = %s, City = %s, Zip = %d\n",
-                   current->pid, current->name, current->city, current->zip);
+            printf("Race = %s, PID = %d, Time = %s\n",
+                   current->race, current->pid, current->time);
             found = 1;
 
             // Move to the next entry in the bucket
@@ -134,9 +111,7 @@ void lookup_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
     }
 }
 
-
-// Remove a PNCZ entry by pid
-void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* city, int zip) {
+void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time) {
     int start_bucket = 0;
     int end_bucket = table->size;
     int deleted = 0;  // Counter to track if any entries were deleted
@@ -149,18 +124,17 @@ void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
 
     // Traverse the relevant buckets
     for (int i = start_bucket; i < end_bucket; i++) {
-        PNCZ current = table->buckets[i];
-        PNCZ prev = NULL;
+        RPT current = table->buckets[i];
+        RPT prev = NULL;
 
         // Traverse the linked list at the current bucket
         while (current != NULL) {
             // Check if current node matches all specified criteria
             int match = 1;
 
+            if (race != NULL && strcmp(race, "*") != 0 && strcmp(current->race, race) != 0) match = 0;
             if (pid != -1 && current->pid != pid) match = 0;
-            if (name != NULL && strcmp(name, "*") != 0 && strcmp(current->name, name) != 0) match = 0;
-            if (city != NULL && strcmp(city, "*") != 0 && strcmp(current->city, city) != 0) match = 0;
-            if (zip != -1 && current->zip != zip) match = 0;
+            if (time != NULL && strcmp(time, "*") != 0 && strcmp(current->time, time) != 0) match = 0;
 
             if (match) {
                 // Entry matches; delete it
@@ -173,7 +147,7 @@ void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
                 }
 
                 // Move to the next node and free the current node
-                PNCZ to_delete = current;
+                RPT to_delete = current;
                 current = current->next;
                 free(to_delete);
                 table->count--;
@@ -189,26 +163,21 @@ void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
     // Print the updated hash table if any entries were deleted
     if (deleted) {
         printf("\nHash table after deletions:\n");
-        print_PNCZTable(table);
+        print_RPTTable(table);
     } else {
         printf("\nNo matching entries found to delete.\n");
     }
 }
 
-
-
-// Print all entries in the PNCZHashTable
-void print_PNCZTable(PNCZHashTable table) {
+void print_RPTTable(RPTHashTable table) {
     for (int i = 0; i < table->size; i++) {
         printf("Bucket %d: ", i);
-        PNCZ current = table->buckets[i];
+        RPT current = table->buckets[i];
         while (current != NULL) {
-            printf("[PID: %d, Name: %s, City: %s, Zip: %d] -> ",
-                   current->pid, current->name, current->city, current->zip);
+            printf("[Race: %s, PID: %d, Time: %s] -> ",
+                   current->race, current->pid, current->time);
             current = current->next;
         }
         printf("NULL\n");
     }
 }
-
-
