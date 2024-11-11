@@ -1,20 +1,7 @@
-#include "RD.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-// Define the RD struct
-struct RD {
-    char race[50];
-    char date[15];
-    struct RD* next;  // For chaining in hash buckets
-};
-
-struct RDHashTable {
-    int size;
-    RD* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
-    int count;
-};
+#include "RD.h"
 
 static int hash_race(const char* race, int table_size) {
     unsigned int hash_value = 0;
@@ -24,7 +11,7 @@ static int hash_race(const char* race, int table_size) {
     return hash_value % table_size;
 }
 
-// Create a new RD entry
+
 RD create_RD(const char* race, const char* date) {
     RD newEntry = (RD)malloc(sizeof(struct RD));
     if (newEntry != NULL) {
@@ -37,6 +24,7 @@ RD create_RD(const char* race, const char* date) {
     return newEntry;
 }
 
+
 RDHashTable new_RDHashTable(int size) {
     RDHashTable table = (RDHashTable)malloc(sizeof(struct RDHashTable));
     table->size = size;
@@ -45,26 +33,28 @@ RDHashTable new_RDHashTable(int size) {
     return table;
 }
 
-const char* get_RD_race(RD entry) {
-    return entry->race;
-}
-
-const char* get_RD_date(RD entry) {
-    return entry->date;
-}
 
 void free_RDHashTable(RDHashTable table) {
     for (int i = 0; i < table->size; i++) {
         RD current = table->buckets[i];
         while (current != NULL) {
             RD next = current->next;
-            free(current);  // Free each PNCZ node
+            free(current);
             current = next;
         }
     }
-    free(table->buckets);  // Free the array of bucket pointers
-    free(table);            // Free the table structure itself
+    free(table->buckets);
+    free(table);
 }
+
+
+const char* get_RD_race(RD entry) {
+    return entry->race;
+}
+const char* get_RD_date(RD entry) {
+    return entry->date;
+}
+
 
 void insert_RD(RDHashTable table, RD entry) {
     int index = hash_race(entry->race, table->size);
@@ -72,6 +62,7 @@ void insert_RD(RDHashTable table, RD entry) {
     table->buckets[index] = entry;
     table->count++;
 }
+
 
 void lookup_RD(RDHashTable table, const char* race, const char* date) {
     int found = 0;  // Flag to check if any entry is found
@@ -105,6 +96,7 @@ void lookup_RD(RDHashTable table, const char* race, const char* date) {
         printf("No matching entries found.\n");
     }
 }
+
 
 void delete_RD(RDHashTable table, const char* race, const char* date) {
     int start_bucket = 0;
@@ -156,12 +148,13 @@ void delete_RD(RDHashTable table, const char* race, const char* date) {
 
     // Print the updated hash table if any entries were deleted
     if (deleted) {
-        printf("\nHash table after deletions:\n");
+        printf("Hash table after deletions:\n");
         print_RDTable(table);
     } else {
         printf("No matching entries found to delete.\n");
     }
 }
+
 
 void print_RDTable(RDHashTable table) {
     for (int i = 0; i < table->size; i++) {

@@ -1,20 +1,7 @@
-#include "RS.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-// Define the RS struct
-struct RS {
-    char race[50];
-    char sponsor[20];
-    struct RS* next;  // For chaining in hash buckets
-};
-
-struct RSHashTable {
-    int size;
-    RS* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
-    int count;
-};
+#include "RS.h"
 
 static int hash_race(const char* race, int table_size) {
     unsigned int hash_value = 0;
@@ -24,7 +11,7 @@ static int hash_race(const char* race, int table_size) {
     return hash_value % table_size;
 }
 
-// Create a new RS entry
+
 RS create_RS(const char* race, const char* sponsor) {
     RS newEntry = (RS)malloc(sizeof(struct RS));
     if (newEntry != NULL) {
@@ -37,6 +24,7 @@ RS create_RS(const char* race, const char* sponsor) {
     return newEntry;
 }
 
+
 RSHashTable new_RSHashTable(int size) {
     RSHashTable table = (RSHashTable)malloc(sizeof(struct RSHashTable));
     table->size = size;
@@ -45,26 +33,28 @@ RSHashTable new_RSHashTable(int size) {
     return table;
 }
 
-const char* get_RS_race(RS entry) {
-    return entry->race;
-}
-
-const char* get_RS_sponsor(RS entry) {
-    return entry->sponsor;
-}
 
 void free_RSHashTable(RSHashTable table) {
     for (int i = 0; i < table->size; i++) {
         RS current = table->buckets[i];
         while (current != NULL) {
             RS next = current->next;
-            free(current);  // Free each PNCZ node
+            free(current);
             current = next;
         }
     }
-    free(table->buckets);  // Free the array of bucket pointers
-    free(table);            // Free the table structure itself
+    free(table->buckets);
+    free(table);
 }
+
+
+const char* get_RS_race(RS entry) {
+    return entry->race;
+}
+const char* get_RS_sponsor(RS entry) {
+    return entry->sponsor;
+}
+
 
 void insert_RS(RSHashTable table, RS entry) {
     int index = hash_race(entry->race, table->size);
@@ -72,6 +62,7 @@ void insert_RS(RSHashTable table, RS entry) {
     table->buckets[index] = entry;
     table->count++;
 }
+
 
 void lookup_RS(RSHashTable table, const char* race, const char* sponsor) {
     int found = 0;  // Flag to check if any entry is found
@@ -105,6 +96,7 @@ void lookup_RS(RSHashTable table, const char* race, const char* sponsor) {
         printf("No matching entries found.\n");
     }
 }
+
 
 void delete_RS(RSHashTable table, const char* race, const char* sponsor) {
     int start_bucket = 0;
@@ -158,7 +150,7 @@ void delete_RS(RSHashTable table, const char* race, const char* sponsor) {
 
     // Print the updated hash table if any entries were deleted
     if (deleted) {
-        printf("\nHash table after deletions:\n");
+        printf("Hash table after deletions:\n");
         print_RSTable(table);
     } else {
         printf("No matching entries found to delete.\n");

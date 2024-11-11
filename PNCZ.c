@@ -1,30 +1,13 @@
-#include "PNCZ.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "PNCZ.h"
 
-// Define the PNCZ struct
-struct PNCZ {
-    int pid;
-    char name[50];
-    char city[50];
-    int zip;
-    struct PNCZ* next;  // For chaining in hash buckets
-};
-
-// Define the PNCZHashTable struct privately in PNCZ.c
-struct PNCZHashTable {
-    int size;
-    PNCZ* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
-    int count;
-};
-
-// Hash function to compute the bucket index
 static int hash(int pid, int size) {
     return abs(pid) % size;
 }
 
-// Create a new PNCZ entry
+
 PNCZ create_PNCZ(int pid, const char* name, const char* city, int zip) {
     PNCZ newEntry = (PNCZ)malloc(sizeof(struct PNCZ));
     if (newEntry != NULL) {
@@ -40,7 +23,6 @@ PNCZ create_PNCZ(int pid, const char* name, const char* city, int zip) {
 }
 
 
-// Create a new PNCZHashTable
 PNCZHashTable new_PNCZHashTable(int size) {
     PNCZHashTable table = (PNCZHashTable)malloc(sizeof(struct PNCZHashTable));
     table->size = size;
@@ -49,7 +31,21 @@ PNCZHashTable new_PNCZHashTable(int size) {
     return table;
 }
 
-// Accessor functions
+
+void free_PNCZHashTable(PNCZHashTable table) {
+    for (int i = 0; i < table->size; i++) {
+        PNCZ current = table->buckets[i];
+        while (current != NULL) {
+            PNCZ next = current->next;
+            free(current);
+            current = next;
+        }
+    }
+    free(table->buckets);
+    free(table);
+}
+
+
 int get_PNCZ_pid(PNCZ entry) {
     return entry->pid;
 }
@@ -62,32 +58,15 @@ const char* get_PNCZ_city(PNCZ entry) {
 int get_PNCZ_zip(PNCZ entry) {
     return entry->zip;
 }
-PNCZ get_PNCZ_next(PNCZ entry) {
-    return entry->next;
-}
-
-// Free the PNCZHashTable and all its entries
-void free_PNCZHashTable(PNCZHashTable table) {
-    for (int i = 0; i < table->size; i++) {
-        PNCZ current = table->buckets[i];
-        while (current != NULL) {
-            PNCZ next = current->next;
-            free(current);  // Free each PNCZ node
-            current = next;
-        }
-    }
-    free(table->buckets);  // Free the array of bucket pointers
-    free(table);            // Free the table structure itself
-}
 
 
-// Insert a new PNCZ entry into the hashtable
 void insert_PNCZ(PNCZHashTable table, PNCZ entry) {
     int index = hash(entry->pid, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
 }
+
 
 void lookup_PNCZ(PNCZHashTable table, int pid, const char* name, const char* city, int zip) {
     int found = 0;  // Flag to check if any entry is found
@@ -135,7 +114,6 @@ void lookup_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
 }
 
 
-// Remove a PNCZ entry by pid
 void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* city, int zip) {
     int start_bucket = 0;
     int end_bucket = table->size;
@@ -188,7 +166,7 @@ void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
 
     // Print the updated hash table if any entries were deleted
     if (deleted) {
-        printf("\nHash table after deletions:\n");
+        printf("Hash table after deletions:\n");
         print_PNCZTable(table);
     } else {
         printf("No matching entries found to delete.\n");
@@ -196,8 +174,6 @@ void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
 }
 
 
-
-// Print all entries in the PNCZHashTable
 void print_PNCZTable(PNCZHashTable table) {
     for (int i = 0; i < table->size; i++) {
         printf("Bucket %d: ", i);

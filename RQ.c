@@ -1,20 +1,7 @@
-#include "RQ.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-// Define the RQ struct
-struct RQ {
-    char race[50];
-    char qualifier[20];
-    struct RQ* next;  // For chaining in hash buckets
-};
-
-struct RQHashTable {
-    int size;
-    RQ* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
-    int count;
-};
+#include "RQ.h"
 
 static int hash_race(const char* race, int table_size) {
     unsigned int hash_value = 0;
@@ -24,7 +11,7 @@ static int hash_race(const char* race, int table_size) {
     return hash_value % table_size;
 }
 
-// Create a new RQ entry
+
 RQ create_RQ(const char* race, const char* qualifier) {
     RQ newEntry = (RQ)malloc(sizeof(struct RQ));
     if (newEntry != NULL) {
@@ -37,6 +24,7 @@ RQ create_RQ(const char* race, const char* qualifier) {
     return newEntry;
 }
 
+
 RQHashTable new_RQHashTable(int size) {
     RQHashTable table = (RQHashTable)malloc(sizeof(struct RQHashTable));
     table->size = size;
@@ -45,26 +33,28 @@ RQHashTable new_RQHashTable(int size) {
     return table;
 }
 
-const char* get_RQ_race(RQ entry) {
-    return entry->race;
-}
-
-const char* get_RQ_qualifier(RQ entry) {
-    return entry->qualifier;
-}
 
 void free_RQHashTable(RQHashTable table) {
     for (int i = 0; i < table->size; i++) {
         RQ current = table->buckets[i];
         while (current != NULL) {
             RQ next = current->next;
-            free(current);  // Free each PNCZ node
+            free(current);
             current = next;
         }
     }
-    free(table->buckets);  // Free the array of bucket pointers
-    free(table);            // Free the table structure itself
+    free(table->buckets);
+    free(table);
 }
+
+
+const char* get_RQ_race(RQ entry) {
+    return entry->race;
+}
+const char* get_RQ_qualifier(RQ entry) {
+    return entry->qualifier;
+}
+
 
 void insert_RQ(RQHashTable table, RQ entry) {
     int index = hash_race(entry->race, table->size);
@@ -72,6 +62,7 @@ void insert_RQ(RQHashTable table, RQ entry) {
     table->buckets[index] = entry;
     table->count++;
 }
+
 
 void lookup_RQ(RQHashTable table, const char* race, const char* qualifier) {
     int found = 0;  // Flag to check if any entry is found
@@ -105,6 +96,7 @@ void lookup_RQ(RQHashTable table, const char* race, const char* qualifier) {
         printf("No matching entries found.\n");
     }
 }
+
 
 void delete_RQ(RQHashTable table, const char* race, const char* qualifier) {
     int start_bucket = 0;
@@ -158,7 +150,7 @@ void delete_RQ(RQHashTable table, const char* race, const char* qualifier) {
 
     // Print the updated hash table if any entries were deleted
     if (deleted) {
-        printf("\nHash table after deletions:\n");
+        printf("Hash table after deletions:\n");
         print_RQTable(table);
     } else {
         printf("No matching entries found to delete.\n");

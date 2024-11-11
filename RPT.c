@@ -1,27 +1,13 @@
-#include "RPT.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-// Define the RPT struct
-struct RPT {
-    char race[50];
-    int pid;
-    char time[10];
-    struct RPT* next;  // For chaining in hash buckets
-};
-
-struct RPTHashTable {
-    int size;
-    RPT* buckets;  // Array of pointers to PNCZ nodes (linked list for each bucket)
-    int count;
-};
+#include "RPT.h"
 
 static int hash(int pid, int size) {
     return abs(pid) % size;
 }
 
-// Create a new RPT entry
+
 RPT create_RPT(const char* race, int pid, const char* time) {
     RPT newEntry = (RPT)malloc(sizeof(struct RPT));
     if (newEntry != NULL) {
@@ -35,6 +21,7 @@ RPT create_RPT(const char* race, int pid, const char* time) {
     return newEntry;
 }
 
+
 RPTHashTable new_RPTHashTable(int size) {
     RPTHashTable table = (RPTHashTable)malloc(sizeof(struct RPTHashTable));
     table->size = size;
@@ -43,10 +30,24 @@ RPTHashTable new_RPTHashTable(int size) {
     return table;
 }
 
+
+void free_RPTHashTable(RPTHashTable table) {
+    for (int i = 0; i < table->size; i++) {
+        RPT current = table->buckets[i];
+        while (current != NULL) {
+            RPT next = current->next;
+            free(current);
+            current = next;
+        }
+    }
+    free(table->buckets);
+    free(table);
+}
+
+
 const char* get_RPT_race(RPT entry) {
     return entry->race;
 }
-
 int get_RPT_pid(RPT entry) {
     return entry->pid;
 }
@@ -54,18 +55,6 @@ const char* get_RPT_time(RPT entry) {
     return entry->time;
 }
 
-void free_RPTHashTable(RPTHashTable table) {
-    for (int i = 0; i < table->size; i++) {
-        RPT current = table->buckets[i];
-        while (current != NULL) {
-            RPT next = current->next;
-            free(current);  // Free each PNCZ node
-            current = next;
-        }
-    }
-    free(table->buckets);  // Free the array of bucket pointers
-    free(table);            // Free the table structure itself
-}
 
 void insert_RPT(RPTHashTable table, RPT entry) {
     int index = hash(entry->pid, table->size);
@@ -73,6 +62,7 @@ void insert_RPT(RPTHashTable table, RPT entry) {
     table->buckets[index] = entry;
     table->count++;
 }
+
 
 void lookup_RPT(RPTHashTable table, const char* race, int pid, const char* time) {
     int found = 0;  // Flag to check if any entry is found
@@ -110,6 +100,7 @@ void lookup_RPT(RPTHashTable table, const char* race, int pid, const char* time)
         printf("No matching entries found.\n");
     }
 }
+
 
 void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time) {
     int start_bucket = 0;
@@ -162,12 +153,13 @@ void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time)
 
     // Print the updated hash table if any entries were deleted
     if (deleted) {
-        printf("\nHash table after deletions:\n");
+        printf("Hash table after deletions:\n");
         print_RPTTable(table);
     } else {
         printf("No matching entries found to delete.\n");
     }
 }
+
 
 void print_RPTTable(RPTHashTable table) {
     for (int i = 0; i < table->size; i++) {
