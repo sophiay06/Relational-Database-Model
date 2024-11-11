@@ -2,11 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "PNCZ.h"
-
-static int hash(int pid, int size) {
-    return abs(pid) % size;
-}
-
+#include "hash.h"
 
 PNCZ create_PNCZ(int pid, const char* name, const char* city, int zip) {
     PNCZ newEntry = (PNCZ)malloc(sizeof(struct PNCZ));

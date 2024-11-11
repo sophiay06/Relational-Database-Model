@@ -2,11 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "RPT.h"
-
-static int hash(int pid, int size) {
-    return abs(pid) % size;
-}
-
+#include "hash.h"
 
 RPT create_RPT(const char* race, int pid, const char* time) {
     RPT newEntry = (RPT)malloc(sizeof(struct RPT));

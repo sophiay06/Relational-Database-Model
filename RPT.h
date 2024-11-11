@@ -16,7 +16,6 @@ struct RPTHashTable {
 };
 typedef struct RPTHashTable *RPTHashTable;
 
-static int hash(int pid, int size);
 RPT create_RPT(const char* race, int pid, const char* time);
 RPTHashTable new_RPTHashTable(int size);
 void free_RPTHashTable(RPTHashTable table);
