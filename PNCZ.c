@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "PNCZ.h"
-#include "hash.h"
+
+int hash_pncz(int pid, int size) {
+    return abs(pid) % size;
+}
 
 PNCZ create_PNCZ(int pid, const char* name, const char* city, int zip) {
     PNCZ newEntry = (PNCZ)malloc(sizeof(struct PNCZ));
@@ -57,7 +60,7 @@ int get_PNCZ_zip(PNCZ entry) {
 
 
 void insert_PNCZ(PNCZHashTable table, PNCZ entry) {
-    int index = hash(entry->pid, table->size);
+    int index = hash_pncz(entry->pid, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
@@ -117,7 +120,7 @@ void delete_PNCZ(PNCZHashTable table, int pid, const char* name, const char* cit
 
     // If pid is not a wildcard, calculate the specific bucket
     if (pid != -1) {
-        start_bucket = hash(pid, table->size);
+        start_bucket = hash_pncz(pid, table->size);
         end_bucket = start_bucket + 1;
     }
 

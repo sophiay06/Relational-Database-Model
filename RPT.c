@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "RPT.h"
-#include "hash.h"
+
+int hash_rpt(int pid, int size) {
+    return abs(pid) % size;
+}
 
 RPT create_RPT(const char* race, int pid, const char* time) {
     RPT newEntry = (RPT)malloc(sizeof(struct RPT));
@@ -53,7 +56,7 @@ const char* get_RPT_time(RPT entry) {
 
 
 void insert_RPT(RPTHashTable table, RPT entry) {
-    int index = hash(entry->pid, table->size);
+    int index = hash_rpt(entry->pid, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
@@ -105,7 +108,7 @@ void delete_RPT(RPTHashTable table, const char* race, int pid, const char* time)
 
     // If pid is not a wildcard, calculate the specific bucket
     if (pid != -1) {
-        start_bucket = hash(pid, table->size);
+        start_bucket = hash_rpt(pid, table->size);
         end_bucket = start_bucket + 1;
     }
 

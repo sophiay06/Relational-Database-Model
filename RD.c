@@ -2,7 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 #include "RD.h"
-#include "hash.h"
+
+int hash_race_date(const char* race, const char* date, int table_size) {
+    char combined[100];  // Buffer to store concatenated Race and Date
+    snprintf(combined, sizeof(combined), "%s%s", race, date);  // Concatenate Race and Date
+
+    int hash = 0;
+
+    for (int i = 0; combined[i] != '\0'; i++) {
+        hash = (hash * 17 + combined[i]) % table_size;  // Multiply by a prime and add ASCII value
+    }
+
+    return hash;
+}
 
 RD create_RD(const char* race, const char* date) {
     RD newEntry = (RD)malloc(sizeof(struct RD));
@@ -49,7 +61,7 @@ const char* get_RD_date(RD entry) {
 
 
 void insert_RD(RDHashTable table, RD entry) {
-    int index = hash_race(entry->race, table->size);
+    int index = hash_race_date(entry->race, entry->date, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
@@ -97,7 +109,7 @@ void delete_RD(RDHashTable table, const char* race, const char* date) {
 
     // If pid is not a wildcard, calculate the specific bucket
     if (race != NULL) {
-        start_bucket = hash_race(race, table->size);
+        start_bucket = hash_race_date(race, date, table->size);
         end_bucket = start_bucket + 1;
     }
 

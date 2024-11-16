@@ -15,6 +15,8 @@ struct RQHashTable {
 };
 typedef struct RQHashTable *RQHashTable;
 
+int hash_race_qualifier(const char* race, const char* qualifier, int table_size);
+
 RQ create_RQ(const char* race, const char* qualifier);
 RQHashTable new_RQHashTable(int size);
 void free_RQHashTable(RQHashTable table);

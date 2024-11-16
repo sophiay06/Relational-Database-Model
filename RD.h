@@ -15,6 +15,8 @@ struct RDHashTable {
 };
 typedef struct RDHashTable *RDHashTable;
 
+int hash_race_date(const char* race, const char* date, int table_size);
+
 RD create_RD(const char* race, const char* date);
 RDHashTable new_RDHashTable(int size);
 void free_RDHashTable(RDHashTable table);

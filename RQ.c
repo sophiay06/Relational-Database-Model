@@ -2,7 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 #include "RQ.h"
-#include "hash.h"
+
+int hash_race_qualifier(const char* race, const char* qualifier, int table_size) {
+    char combined[100];  // Buffer to store concatenated Race and Qualifier
+    snprintf(combined, sizeof(combined), "%s%s", race, qualifier);  // Concatenate Race and Qualifier
+
+    int hash = 0;
+
+    for (int i = 0; combined[i] != '\0'; i++) {
+        hash = (hash * 17 + combined[i]) % table_size;  // Multiply by a prime and add ASCII value
+    }
+
+    return hash;
+}
 
 RQ create_RQ(const char* race, const char* qualifier) {
     RQ newEntry = (RQ)malloc(sizeof(struct RQ));
@@ -49,7 +61,7 @@ const char* get_RQ_qualifier(RQ entry) {
 
 
 void insert_RQ(RQHashTable table, RQ entry) {
-    int index = hash_race(entry->race, table->size);
+    int index = hash_race_qualifier(entry->race, entry->qualifier, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
@@ -97,7 +109,7 @@ void delete_RQ(RQHashTable table, const char* race, const char* qualifier) {
 
     // If race is specified and not a wildcard, calculate the specific bucket
     if (race != NULL && strcmp(race, "*") != 0) {
-        start_bucket = hash_race(race, table->size);
+        start_bucket = hash_race_qualifier(race, qualifier, table->size);
         end_bucket = start_bucket + 1;
     }
 

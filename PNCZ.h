@@ -17,6 +17,8 @@ struct PNCZHashTable {
 };
 typedef struct PNCZHashTable *PNCZHashTable;
 
+int hash_pncz(int pid, int size);
+
 PNCZ create_PNCZ(int pid, const char* name, const char* city, int zip);
 PNCZHashTable new_PNCZHashTable(int size);
 void free_PNCZHashTable(PNCZHashTable table);

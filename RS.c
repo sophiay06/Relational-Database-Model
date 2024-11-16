@@ -2,7 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 #include "RS.h"
-#include "hash.h"
+
+int hash_race_sponsor(const char* race, const char* sponsor, int table_size) {
+    char combined[100];  // Buffer to store concatenated Race and Sponsor
+    snprintf(combined, sizeof(combined), "%s%s", race, sponsor);  // Concatenate Race and Sponsor
+
+    int hash = 0;
+
+    for (int i = 0; combined[i] != '\0'; i++) {
+        hash = (hash * 31 + combined[i]) % table_size;  // Multiply by a prime and add ASCII value
+    }
+
+    return hash;
+}
 
 RS create_RS(const char* race, const char* sponsor) {
     RS newEntry = (RS)malloc(sizeof(struct RS));
@@ -49,7 +61,7 @@ const char* get_RS_sponsor(RS entry) {
 
 
 void insert_RS(RSHashTable table, RS entry) {
-    int index = hash_race(entry->race, table->size);
+    int index = hash_race_sponsor(entry->race, entry->sponsor, table->size);
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
@@ -97,7 +109,7 @@ void delete_RS(RSHashTable table, const char* race, const char* sponsor) {
 
     // If race is specified and not a wildcard, calculate the specific bucket
     if (race != NULL && strcmp(race, "*") != 0) {
-        start_bucket = hash_race(race, table->size);
+        start_bucket = hash_race_sponsor(race, sponsor, table->size);
         end_bucket = start_bucket + 1;
     }
 

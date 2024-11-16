@@ -7,14 +7,15 @@
 #include "RQ.h"
 #include "InitializeData.h"
 #include "Part2Functions.h"
+#include "Part3Functions.h"
 
 void part1() {
     //Creating hash tables for each database
-    PNCZHashTable PNCZ_Table = new_PNCZHashTable(10);
-    RPTHashTable RPT_Table = new_RPTHashTable(10);
-    RDHashTable RD_Table = new_RDHashTable(10);
-    RSHashTable RS_Table = new_RSHashTable(10);
-    RQHashTable RQ_Table = new_RQHashTable(10);
+    PNCZHashTable PNCZ_Table = new_PNCZHashTable(11);
+    RPTHashTable RPT_Table = new_RPTHashTable(11);
+    RDHashTable RD_Table = new_RDHashTable(11);
+    RSHashTable RS_Table = new_RSHashTable(11);
+    RQHashTable RQ_Table = new_RQHashTable(11);
     if (PNCZ_Table == NULL|| RPT_Table == NULL || RD_Table == NULL || RS_Table == NULL || RQ_Table == NULL) {
         fprintf(stderr, "Failed to create hash table.\n");
     }
@@ -106,9 +107,24 @@ void part2() {
     }
 }
 
+void part3() {
+    RPTHashTable rptTable = new_RPTHashTable(11);
+    RDHashTable rdTable = new_RDHashTable(11);
+    RSHashTable rsTable = new_RSHashTable(11);
+    initialize_RPT_data(rptTable);
+    initialize_RD_data(rdTable);
+    initialize_RS_data(rsTable);
+
+    printf("Part 3 Demonstration:\n");
+    join_RD_RS(rdTable,rsTable);
+    free_RPTHashTable(rptTable);
+    free_RDHashTable(rdTable);
+    free_RSHashTable(rsTable);
+}
 
 int main() {
     part1();
-    part2();
+    //part2();
+    //part3();
     return 0;
 }
