@@ -46,8 +46,8 @@ void part1() {
     lookup_RPT(RPT_Table, "CSC Marathon", 67815, "*");
     printf("\nb: Lookup for entries with Name 'J. Thomas' and any PID, City, Zip:\n");
     lookup_PNCZ(PNCZ_Table, -1, "J. Thomas", "*", -1);
-    printf("\nc: Lookup for entries with Race 'CSC Marathon' and Qualifier URMC Ortho':\n");
-    lookup_RQ(RQ_Table, "CSC Marathon", "URMC Ortho");
+    printf("\nc: Lookup for entries with Race 'CSC Marathon' and Qualifier 'GVP Classic':\n");
+    lookup_RQ(RQ_Table, "CSC Marathon", "GVP Classic");
     printf("\nd: Delete the entries with Race 'UTri' and Date 2023-11-02':\n");
     delete_RD(RD_Table, "UTri", "2023-11-02");
     printf("\ne: Delete the entries with Race 'GVP Classic' and Sponsor 'McDavid's':\n");
@@ -107,24 +107,49 @@ void part2() {
     }
 }
 
-void part3() {
-    RPTHashTable rptTable = new_RPTHashTable(11);
-    RDHashTable rdTable = new_RDHashTable(11);
-    RSHashTable rsTable = new_RSHashTable(11);
-    initialize_RPT_data(rptTable);
-    initialize_RD_data(rdTable);
-    initialize_RS_data(rsTable);
 
-    printf("Part 3 Demonstration:\n");
-    join_RD_RS(rdTable,rsTable);
+void part3() {
+    printf("\nPart 3 Demonstration:\n");
+
+    printf("\n1: Selection: Select Race = 'GVP Classic' (RPT) \n");
+
+    RPTHashTable rptTable= new_RPTHashTable(11);
+    initialize_RPT_data(rptTable);
+
+    print_RPTTable(select_RPT_Race(rptTable, "GVP Classic"));
+
+    printf("\n2: Projection: Project PId ( Select Race = 'GVP Classic' (RPT) ) \n");
+
+    print_projPTable(proj_RPT_PId(rptTable, "GVP Classic"));
+
+    printf("\n3: Join RD and RS \n");
+
+    RDHashTable rdTable1 = new_RDHashTable(11);
+    initialize_RD_data(rdTable1);
+    RSHashTable rsTable1 = new_RSHashTable(11);
+    initialize_RS_data(rsTable1);
+
+    print_RDSHashTable(join_RD_RS(rdTable1, rsTable1));
+
+    printf("\n4: Project Sponsor(Select Date='2023-10-02'(RD join RS)) \n");
+
+    RDHashTable rdTable2 = new_RDHashTable(11);
+    initialize_RD_data(rdTable2);
+    RSHashTable rsTable2 = new_RSHashTable(11);
+    initialize_RS_data(rsTable2);
+
+    print_projSpTable(proj_RDS_Sp(select_join_RD_RS_Date(rdTable2,rsTable2,"2023-10-02")));
+
     free_RPTHashTable(rptTable);
-    free_RDHashTable(rdTable);
-    free_RSHashTable(rsTable);
+    free_RDHashTable(rdTable1);
+    free_RSHashTable(rsTable1);
+    free_RDHashTable(rdTable2);
+    free_RSHashTable(rsTable2);
 }
 
 int main() {
     part1();
-    //part2();
-    //part3();
+    part2();
+    part3();
     return 0;
 }
