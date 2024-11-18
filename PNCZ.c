@@ -61,6 +61,19 @@ int get_PNCZ_zip(PNCZ entry) {
 
 void insert_PNCZ(PNCZHashTable table, PNCZ entry) {
     int index = hash_pncz(entry->pid, table->size);
+    PNCZ current = table->buckets[index];
+
+    // Check for duplicates in the bucket
+    while (current != NULL) {
+        if (current->pid == entry->pid) {
+            // Duplicate found, do not insert
+            printf("Duplicate entry found for PID: %d. Skipping insertion.\n", entry->pid);
+            return;
+        }
+        current = current->next;
+    }
+
+    // No duplicate found, proceed with insertion
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;

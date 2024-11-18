@@ -6,6 +6,9 @@
 #include "RS.h"
 #include "Part3Functions.h"
 
+// ============================================
+// (1) Selection Function
+// ============================================
 RPTHashTable select_RPT_Race(RPTHashTable table, const char* race) {
     RPTHashTable tobereturned = new_RPTHashTable(table->size);
 
@@ -26,26 +29,21 @@ RPTHashTable select_RPT_Race(RPTHashTable table, const char* race) {
 }
 
 
-// PROJP FUNCTIONS: FOR 2)PROJECTION
-
+// ============================================
+// (2) Projection Functions for PId
+// ============================================
 int hash_int(int pid, int size) {
     return abs(pid) % size;
 }
 
-
 projP create_projP(int pid) {
     projP newEntry = (projP)malloc(sizeof(struct projP));
     if (newEntry != NULL) {
-        // strncpy(newEntry->race, race, sizeof(newEntry->race) - 1);
-        // newEntry->race[sizeof(newEntry->race) - 1] = '\0';
         newEntry->pid = pid;
-        // strncpy(newEntry->time, time, sizeof(newEntry->time) - 1);
-        // newEntry->time[sizeof(newEntry->time) - 1] = '\0';
         newEntry->next = NULL;
     }
     return newEntry;
 }
-
 
 projPHashTable new_projPHashTable(int size) {
     projPHashTable table = (projPHashTable)malloc(sizeof(struct projPHashTable));
@@ -54,7 +52,6 @@ projPHashTable new_projPHashTable(int size) {
     table->count = 0;
     return table;
 }
-
 
 void free_projPHashTable(projPHashTable table) {
     for (int i = 0; i < table->size; i++) {
@@ -69,11 +66,9 @@ void free_projPHashTable(projPHashTable table) {
     free(table);
 }
 
-
 int get_projP_pid(projP entry) {
     return entry->pid;
 }
-
 
 void insert_projP(projPHashTable table, projP entry) {
     int index = hash_int(entry->pid, table->size);
@@ -81,7 +76,6 @@ void insert_projP(projPHashTable table, projP entry) {
     table->buckets[index] = entry;
     table->count++;
 }
-
 
 void print_projPTable(projPHashTable table) {
     int totalPIDs = 0;
@@ -113,15 +107,14 @@ void print_projPTable(projPHashTable table) {
                 printf(", ");
             }
         }
+        printf("\n");
     } else {
         printf("\nNo PIDs found in the hash table.\n");
     }
 }
 
-
-
 projPHashTable proj_RPT_PId(RPTHashTable table, const char* race) {
-    RPTHashTable selecttable = new_RPTHashTable(10);
+    RPTHashTable selecttable = new_RPTHashTable(11);
     selecttable = select_RPT_Race(table, race);
     projPHashTable projtobereturned = new_projPHashTable(selecttable->size);
     for (int i = 0; i < selecttable->size; i++) {
@@ -138,18 +131,18 @@ projPHashTable proj_RPT_PId(RPTHashTable table, const char* race) {
 
 }
 
-//RDS FUNCTIONS FOR 3)JOIN
 
+// ============================================
+// (3) Join Functions for RDS
+// ============================================
 int hash_race_date_sponsor(const char* race, const char* date, const char* sponsor, int table_size) {
-    char combined[150];  // Buffer to store concatenated Race and Date and Sponsor
-    snprintf(combined, sizeof(combined), "%s%s%s", race, date, sponsor);  // Concatenate Race and Date and Sponsor
+    char combined[150];
+    snprintf(combined, sizeof(combined), "%s%s%s", race, date, sponsor);
 
     int hash = 0;
-
     for (int i = 0; combined[i] != '\0'; i++) {
-        hash = (hash * 17 + combined[i]) % table_size;  // Multiply by a prime and add ASCII value
+        hash = (hash * 31 + combined[i]) % table_size;
     }
-
     return hash;
 }
 
@@ -205,20 +198,25 @@ void insert_RDS(RDSHashTable table, RDS entry) {
     table->count++;
 }
 
-void print_RDSTable(RDSHashTable table) {
+void print_RDSHashTable(RDSHashTable table) {
+    int match_found = 0; // Flag to check if there are any entries
     for (int i = 0; i < table->size; i++) {
-        printf("Bucket %d: ", i);
         RDS current = table->buckets[i];
         while (current != NULL) {
-            printf("[Race: %s, Date: %s, Sponsor: %s] -> ",
+            // Print the entry in the desired format
+            printf("Race: %s, Date: %s, Sponsor:%s\n",
                    current->race, current->date, current->sponsor);
-            current = current->next;
+            match_found = 1;
+            current = current->next; // Move to the next entry in the bucket
         }
-        printf("NULL\n");
+    }
+
+    // Print a message if no entries are found
+    if (!match_found) {
+        printf("No matching entries found in the hash table.\n");
     }
 }
 
-// Function to join RD and RS on the Race attribute
 RDSHashTable join_RD_RS(RDHashTable rdTable, RSHashTable rsTable) {
     RDSHashTable tobereturned = new_RDSHashTable(rdTable->size * rsTable->size);
     int match_found = 0; // Flag to track if any matches are found
@@ -252,30 +250,9 @@ RDSHashTable join_RD_RS(RDHashTable rdTable, RSHashTable rsTable) {
     return tobereturned; // Return the resulting hash table
 }
 
-
-// Function to print the RDS hash table in the desired format
-void print_RDSHashTable(RDSHashTable table) {
-    int match_found = 0; // Flag to check if there are any entries
-    for (int i = 0; i < table->size; i++) {
-        RDS current = table->buckets[i];
-        while (current != NULL) {
-            // Print the entry in the desired format
-            printf("Race: %s, Date: %s, Sponsor:%s\n",
-                   current->race, current->date, current->sponsor);
-            match_found = 1;
-            current = current->next; // Move to the next entry in the bucket
-        }
-    }
-
-    // Print a message if no entries are found
-    if (!match_found) {
-        printf("No matching entries found in the hash table.\n");
-    }
-}
-
-
-//FUNCTIONS FOR 4)
-
+// ============================================
+// (4) Projection Functions for Sponsor
+// ============================================
 RDSHashTable select_join_RD_RS_Date(RDHashTable RDtable, RSHashTable RStable, const char* date) {
 
     RDSHashTable jointable = new_RDSHashTable(RDtable->size);
@@ -301,8 +278,6 @@ RDSHashTable select_join_RD_RS_Date(RDHashTable RDtable, RSHashTable RStable, co
      return tobereturned;
 }
 
-//PROJECTION FOR SPONSOR FUNCTIONS
-
 int hash_sponsor(const char* sponsor, int size) {
     char combined[50];
     snprintf(combined, sizeof(combined), "%s", sponsor);
@@ -315,7 +290,6 @@ int hash_sponsor(const char* sponsor, int size) {
     return hash;
 }
 
-
 projSp create_projSp(const char* sponsor) {
     projSp newEntry = (projSp)malloc(sizeof(struct projSp));
     if (newEntry != NULL) {
@@ -326,7 +300,6 @@ projSp create_projSp(const char* sponsor) {
     return newEntry;
 }
 
-
 projSpHashTable new_projSpHashTable(int size) {
     projSpHashTable table = (projSpHashTable)malloc(sizeof(struct projSpHashTable));
     table->size = size;
@@ -334,7 +307,6 @@ projSpHashTable new_projSpHashTable(int size) {
     table->count = 0;
     return table;
 }
-
 
 void free_projSpHashTable(projSpHashTable table) {
     for (int i = 0; i < table->size; i++) {
@@ -379,7 +351,6 @@ void print_projSpTable(projSpHashTable table) {
         printf("\nNo sponsors found in the hash table.\n");
     }
 }
-
 
 projSpHashTable proj_RDS_Sp(RDSHashTable table) {
     projSpHashTable projtobereturned = new_projSpHashTable(table->size);

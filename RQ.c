@@ -62,6 +62,21 @@ const char* get_RQ_qualifier(RQ entry) {
 
 void insert_RQ(RQHashTable table, RQ entry) {
     int index = hash_race_qualifier(entry->race, entry->qualifier, table->size);
+    RQ current = table->buckets[index];
+
+    // Check for duplicates in the bucket
+    while (current != NULL) {
+        if (strcmp(current->race, entry->race) == 0 &&
+            strcmp(current->qualifier, entry->qualifier) == 0) {
+            // Duplicate found, do not insert
+            printf("Duplicate entry found for Race: %s, Qualifier: %s. Skipping insertion.\n",
+                   entry->race, entry->qualifier);
+            return;
+            }
+        current = current->next;
+    }
+
+    // No duplicate found, proceed with insertion
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;

@@ -62,6 +62,21 @@ const char* get_RS_sponsor(RS entry) {
 
 void insert_RS(RSHashTable table, RS entry) {
     int index = hash_race_sponsor(entry->race, entry->sponsor, table->size);
+    RS current = table->buckets[index];
+
+    // Check for duplicates in the bucket
+    while (current != NULL) {
+        if (strcmp(current->race, entry->race) == 0 &&
+            strcmp(current->sponsor, entry->sponsor) == 0) {
+            // Duplicate found, do not insert
+            printf("Duplicate entry found for Race: %s, Sponsor: %s. Skipping insertion.\n",
+                   entry->race, entry->sponsor);
+            return;
+            }
+        current = current->next;
+    }
+
+    // No duplicate found, proceed with insertion
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;

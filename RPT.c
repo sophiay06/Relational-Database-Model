@@ -57,6 +57,22 @@ const char* get_RPT_time(RPT entry) {
 
 void insert_RPT(RPTHashTable table, RPT entry) {
     int index = hash_rpt(entry->pid, table->size);
+    RPT current = table->buckets[index];
+
+    // Check for duplicates in the bucket
+    while (current != NULL) {
+        if (current->pid == entry->pid &&
+            strcmp(current->race, entry->race) == 0 &&
+            strcmp(current->time, entry->time) == 0) {
+            // Duplicate found, do not insert
+            printf("Duplicate entry found for PID: %d, Race: %s, Time: %s. Skipping insertion.\n",
+                   entry->pid, entry->race, entry->time);
+            return;
+            }
+        current = current->next;
+    }
+
+    // No duplicate found, proceed with insertion
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;

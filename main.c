@@ -109,37 +109,35 @@ void part2() {
 
 
 void part3() {
+    //Create hash tables
+    RPTHashTable rptTable= new_RPTHashTable(11);
+    RDHashTable rdTable1 = new_RDHashTable(11);
+    RSHashTable rsTable1 = new_RSHashTable(11);
+    RDHashTable rdTable2 = new_RDHashTable(11);
+    RSHashTable rsTable2 = new_RSHashTable(11);
+
+    //Initialize data
+    initialize_RPT_data(rptTable);
+    initialize_RD_data(rdTable1);
+    initialize_RS_data(rsTable1);
+    initialize_RD_data(rdTable2);
+    initialize_RS_data(rsTable2);
+
     printf("\nPart 3 Demonstration:\n");
 
     printf("\n1: Selection: Select Race = 'GVP Classic' (RPT) \n");
-
-    RPTHashTable rptTable= new_RPTHashTable(11);
-    initialize_RPT_data(rptTable);
-
     print_RPTTable(select_RPT_Race(rptTable, "GVP Classic"));
 
     printf("\n2: Projection: Project PId ( Select Race = 'GVP Classic' (RPT) ) \n");
-
     print_projPTable(proj_RPT_PId(rptTable, "GVP Classic"));
 
     printf("\n3: Join RD and RS \n");
-
-    RDHashTable rdTable1 = new_RDHashTable(11);
-    initialize_RD_data(rdTable1);
-    RSHashTable rsTable1 = new_RSHashTable(11);
-    initialize_RS_data(rsTable1);
-
     print_RDSHashTable(join_RD_RS(rdTable1, rsTable1));
 
     printf("\n4: Project Sponsor(Select Date='2023-10-02'(RD join RS)) \n");
-
-    RDHashTable rdTable2 = new_RDHashTable(11);
-    initialize_RD_data(rdTable2);
-    RSHashTable rsTable2 = new_RSHashTable(11);
-    initialize_RS_data(rsTable2);
-
     print_projSpTable(proj_RDS_Sp(select_join_RD_RS_Date(rdTable2,rsTable2,"2023-10-02")));
 
+    //Free the tables
     free_RPTHashTable(rptTable);
     free_RDHashTable(rdTable1);
     free_RSHashTable(rsTable1);

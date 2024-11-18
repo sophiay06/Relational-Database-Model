@@ -62,6 +62,21 @@ const char* get_RD_date(RD entry) {
 
 void insert_RD(RDHashTable table, RD entry) {
     int index = hash_race_date(entry->race, entry->date, table->size);
+    RD current = table->buckets[index];
+
+    // Check for duplicates in the bucket
+    while (current != NULL) {
+        if (strcmp(current->race, entry->race) == 0 &&
+            strcmp(current->date, entry->date) == 0) {
+            // Duplicate found, do not insert
+            printf("Duplicate entry found for Race: %s, Date: %s. Skipping insertion.\n",
+                   entry->race, entry->date);
+            return;
+            }
+        current = current->next;
+    }
+
+    // No duplicate found, proceed with insertion
     entry->next = table->buckets[index];
     table->buckets[index] = entry;
     table->count++;
